@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import json
-import shutil
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -54,29 +52,37 @@ class TestRis2MoochoReading(unittest.TestCase):
         self.assertTrue(RIS2MOOCHO.is_file(), f"missing script: {RIS2MOOCHO}")
         self.assertTrue(READING_RIS.is_file(), f"missing fixture: {READING_RIS}")
 
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            ris_copy = tmp_path / "Reading.ris"
-            shutil.copyfile(READING_RIS, ris_copy)
+        proc = subprocess.run(
+            [sys.executable, str(RIS2MOOCHO), str(READING_RIS)],
+            cwd=str(MOOCHO_DATA),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(
+            proc.returncode,
+            0,
+            f"ris2moocho failed:\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}",
+        )
+        self.assertEqual(proc.stderr.strip(), "", proc.stderr)
 
-            proc = subprocess.run(
-                [sys.executable, str(RIS2MOOCHO), str(ris_copy)],
-                cwd=str(MOOCHO_DATA),
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(
-                proc.returncode,
-                0,
-                f"ris2moocho failed:\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}",
-            )
+        got = json.loads(proc.stdout)
+        self.assertEqual(got, EXPECTED_READING_JSON)
 
-            out_json = ris_copy.with_suffix(".json")
-            self.assertTrue(out_json.is_file(), f"expected output file: {out_json}")
-
-            got = json.loads(out_json.read_text(encoding="utf-8"))
-            self.assertEqual(got, EXPECTED_READING_JSON)
+    def test_help_flags_print_usage_and_exit_zero(self) -> None:
+        for flag in ("-h", "--help"):
+            with self.subTest(flag=flag):
+                proc = subprocess.run(
+                    [sys.executable, str(RIS2MOOCHO), flag],
+                    cwd=str(MOOCHO_DATA),
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                self.assertIn("usage:", proc.stdout)
+                self.assertIn("file.ris", proc.stdout)
+                self.assertEqual(proc.stderr.strip(), "", proc.stderr)
 
 
 if __name__ == "__main__":

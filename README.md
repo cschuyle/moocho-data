@@ -40,3 +40,11 @@ There are other formats but no tools in this repo yet make use of them. Stay tun
 | --- | --- | --- |
 | RIS | `ris2moocho.py` | [Wikipedia: RIS (file format)](https://en.wikipedia.org/wiki/RIS_%28file_format%29). One `.ris` file per run; JSON goes to **stdout** (e.g. `python3 ris2moocho.py books.ris > books.json`). |
 
+
+## Usage
+
+The root directory contains executables. Each tries to be self-explanatory vie <executable> --help
+
+## Local development
+
+`make`: Run all tests

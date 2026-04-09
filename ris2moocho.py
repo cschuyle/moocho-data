@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 """
-Convert RIS bibliography files to Morsor collection JSON (littlePrinceItem items).
+Convert one RIS bibliography file to Morsor collection JSON (littlePrinceItem items).
 
-Each input file becomes one collection document:
+Prints a single collection document to stdout:
   { "id", "name", "shortName", "items": [ { "littlePrinceItem": { ... } }, ... ] }
 
-Accepts any number of paths ending in .ris or .rsi (same line-oriented RIS format).
-Writes <basename>.json next to each input file.
-
 Usage:
-  ./ris-to-little-prince-collection.py ../moocho-data/Reading.ris
-  ./ris-to-little-prince-collection.py *.rsi
+  ris2moocho.py path/to/file.ris > out.json
+  ris2moocho.py --help
 """
 from __future__ import annotations
 
@@ -28,6 +25,23 @@ script_name = Path(__file__).stem
 def die(msg: str, code: int = 2) -> None:
     print(f"{script_name}: {msg}", file=sys.stderr)
     sys.exit(code)
+
+
+_HELP_FLAGS = frozenset({"-h", "--help"})
+
+
+def print_help() -> None:
+    print(
+        f"""usage: {script_name} [-h | --help] file.ris
+
+Convert one RIS file to a Morsor trove JSON document (littlePrinceItem items).
+Output is written to standard output.
+
+Example:
+  {script_name} books.ris > books.json
+"""
+    )
+
 
 def parse_ris(text: str) -> list[dict[str, list[str]]]:
     """Split RIS text into records; each record maps tag -> list of values (multiline folded)."""
@@ -244,44 +258,43 @@ def build_collection(path: Path, items: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def convert_file(path: Path) -> Path:
+def convert_path(path: Path) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8", errors="replace")
     records = parse_ris(text)
     items: list[dict[str, Any]] = []
-    skipped = 0
     for i, rec in enumerate(records):
         item = ris_record_to_item(rec)
         if item is None:
-            skipped += 1
             print(
                 f"{script_name}: skip record {i + 1} in {path.name} (no TI/T1 title)",
                 file=sys.stderr,
             )
             continue
         items.append(item)
-
-    out_path = path.with_suffix(".json")
-    doc = build_collection(path, items)
-    out_path.write_text(
-        json.dumps(doc, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    print(f"{path} -> {out_path} ({len(items)} items, {skipped} skipped)")
-    return out_path
+    return build_collection(path, items)
 
 
 def main(argv: list[str]) -> None:
-    if len(argv) < 1:
-        die(f"usage: {script_name} file.ris ...")
+    if len(argv) == 1 and argv[0] in _HELP_FLAGS:
+        print_help()
+        return
 
-    for arg in argv:
-        path = Path(arg)
-        if not path.is_file():
-            die(f"not a file: {arg}")
-        suf = path.suffix.lower()
-        if suf not in (".ris"):
-            print(f"WARNING: Expected .ris extension: {arg}. Trying to parse as RIS format anyway", file=sys.stderr)
-        convert_file(path)
+    if len(argv) != 1:
+        die(f"usage: {script_name} file.ris  (see {script_name} --help)")
+
+    arg = argv[0]
+    path = Path(arg)
+    if not path.is_file():
+        die(f"not a file: {arg}")
+    suf = path.suffix.lower()
+    if suf != ".ris":
+        print(
+            f"{script_name}: warning: expected .ris extension: {arg} (parsing as RIS anyway)",
+            file=sys.stderr,
+        )
+
+    doc = convert_path(path)
+    sys.stdout.write(json.dumps(doc, ensure_ascii=False, indent=2) + "\n")
 
 
 if __name__ == "__main__":
