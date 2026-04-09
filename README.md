@@ -43,7 +43,7 @@ There are other formats but no tools in this repo yet make use of them. Stay tun
 
 ## Usage
 
-The root directory contains executables. Each tries to be self-explanatory vie <executable> --help
+The root directory contains executables. Each tries to be self-explanatory via `<executable> --help`
 
 ## Local development
 

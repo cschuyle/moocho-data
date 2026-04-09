@@ -19,7 +19,7 @@ from typing import Any
 
 TAG_LINE = re.compile(r"^([A-Z0-9]{2})\s+-\s?(.*)$")
 
-script_name = Path(__file__).stem
+script_name = Path(__file__).name
 
 
 def die(msg: str, code: int = 2) -> None:
@@ -32,13 +32,13 @@ _HELP_FLAGS = frozenset({"-h", "--help"})
 
 def print_help() -> None:
     print(
-        f"""usage: {script_name} [-h | --help] file.ris
+        f"""usage: {script_name} [-h | --help] <file.ris>
 
-Convert one RIS file to a Morsor trove JSON document (littlePrinceItem items).
+Convert input RIS file to a Moocho trove JSON document (littlePrinceItem items).
 Output is written to standard output.
 
 Example:
-  {script_name} books.ris > books.json
+  {script_name} books.ris > my-books-trove.json
 """
     )
 
