@@ -12,7 +12,6 @@ This repo contains tools to manage data to be used in Moocho/Morsor.
 - Python 3
 - `jq`
 
-
 ## In Brief
 
 Moocho consumes **troves**. Troves consist of **items**. Items have at minimum a title. Other fun stuff include:
@@ -29,7 +28,7 @@ Many troves are populated by importing exports from external sources. That's mai
 
 ### `littlePrinceItem`
 
-    An overlapping set of the information you'd expect a book to have. Specifically, includes data about language, translator, illustrator.
+> An overlapping set of the information you'd expect a book to have. Specifically, includes data about language, translator, illustrator.
 
 There are other formats but no tools in this repo yet make use of them. Stay tuned!
 
@@ -38,7 +37,7 @@ There are other formats but no tools in this repo yet make use of them. Stay tun
 
 | Format | Tool | Notes |
 | --- | --- | --- |
-| RIS | `ris2moocho.py` | [Wikipedia: RIS (file format)](https://en.wikipedia.org/wiki/RIS_%28file_format%29). One `.ris` file per run; JSON goes to **stdout** (e.g. `python3 ris2moocho.py books.ris > books.json`). |
+| RIS | `ris2moocho.py` | [Wikipedia: RIS (file format)](https://en.wikipedia.org/wiki/RIS_%28file_format%29). |
 
 
 ## Usage
